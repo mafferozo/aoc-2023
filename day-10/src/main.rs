@@ -32,7 +32,6 @@ fn main() -> Result<()> {
 
     // smallest y, largest x
     let mut smallest = (0, i32::MAX);
-    let mut is_clockwise = true;
     let mut positions = HashSet::new();
     let mut steps = 1;
     let first_pos = find_first_connected_pipe(start_pos, &grid);
@@ -51,14 +50,11 @@ fn main() -> Result<()> {
         // positions, smallest, steps:
         // gather some data during the walk
         let (x,y) = cur;
-        let (x_prev,_y_prev) = prev;
         if y < smallest.1 {
             smallest = (x, y);
-            is_clockwise = x != x_prev;
         } else if y == smallest.1 {
             if x > smallest.0 {
                 smallest = (x, y);
-                is_clockwise = x != x_prev;
             }
         }
         steps += 1;

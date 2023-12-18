@@ -112,7 +112,7 @@ impl Hand {
         // count the number of jokers,
         // update the best card in the map; add the joker count
         // remove the jokers.
-        let joker_count = frequency_map.remove_entry(&'J').map(|(k,v)| v);
+        let joker_count = frequency_map.remove_entry(&'J').map(|(_k,v)| v);
 
         // sort the values of the frequency map, and match on the first and second count
         let mut k: Vec<_> = frequency_map.drain().map(|(_k, v)| v).collect();
@@ -159,10 +159,6 @@ impl Hand {
             ordering => return ordering,
         }
         self.cards_part_two.cmp(&other.cards_part_two)
-    }
-
-    fn to_string(&self) -> String {
-        self.cards_part_two.iter().map(|c| c.0).collect()
     }
 }
 
