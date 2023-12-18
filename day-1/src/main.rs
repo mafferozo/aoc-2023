@@ -41,21 +41,22 @@ fn main() -> Result<()> {
         sum_part_one += first_digit_from_left * 10 + first_digit_from_right;
 
         // part two
-        let f = re
+        let first_digit_from_left = re
             .find_iter(line)
             .next()
             .context("Expected line to have atleast 1 match")?
             .as_str();
-        let f = parse_digit_or_str(f)?;
+        let first_digit_from_left = parse_digit_or_str(first_digit_from_left)?;
 
-        let l = re_from_right
+        let first_digit_from_right = re_from_right
             .captures_iter(line)
             .last()
             .context("Expected line to have atleast 1 match")?
-        l.
-            // .as_str();
-        // let l = parse_digit_or_str(l)?;
-        // sum_part_two += f * 10 + l
+            .get(1)
+            .unwrap()
+            .as_str();
+        let first_digit_from_right = parse_digit_or_str(first_digit_from_right)?;
+        sum_part_two += first_digit_from_left * 10 + first_digit_from_right
     }
     println!("part_one: {}", sum_part_one);
     println!("part_two: {}", sum_part_two);
