@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 aoc_input = "0.2.2"
+regex = "1.10.2"
