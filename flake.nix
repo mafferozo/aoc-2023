@@ -7,16 +7,18 @@
   };
 
   outputs = { self, nixpkgs, utils, naersk }:
-    utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        naersk-lib = pkgs.callPackage naersk { };
-      in
-      {
-        packages.system.default = naersk-lib.buildPackage ./.;
-        devShells.system.default = with pkgs; mkShell {
-          buildInputs = [ cargo rustc rustfmt pre-commit rustPackages.clippy ];
-          RUST_SRC_PATH = rustPlatform.rustLibSrc;
-        };
-      });
+    utils.lib.eachDefaultSystem 
+    (system:
+        let
+          pkgs = import nixpkgs { inherit system; };
+          naersk-lib = pkgs.callPackage naersk { };
+        in
+        {
+          packages.default = naersk-lib.buildPackage ./.;
+          devShells.default = with pkgs; mkShell {
+            buildInputs = [ cargo rustc rustfmt rustPackages.clippy pkg-config openssl ];
+            RUST_SRC_PATH = rustPlatform.rustLibSrc;
+          };
+        }
+    );
 }
