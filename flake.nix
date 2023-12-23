@@ -12,11 +12,14 @@
         let
           pkgs = import nixpkgs { inherit system; };
           naersk-lib = pkgs.callPackage naersk { };
+          nativeBuildInputs = with pkgs; [ pkg-config ];
+          buildInputs = with pkgs; [ openssl ];
         in
         {
-          packages.default = naersk-lib.buildPackage ./.;
+          packages.default = naersk-lib.buildPackage { src = ./.; inherit nativeBuildInputs; inherit buildInputs; };
           devShells.default = with pkgs; mkShell {
-            buildInputs = [ cargo rustc rustfmt rustPackages.clippy pkg-config openssl ];
+            inherit nativeBuildInputs;
+            buildInputs = [ cargo rustc rustfmt rustPackages.clippy ] ++ buildInputs;
             RUST_SRC_PATH = rustPlatform.rustLibSrc;
           };
         }
