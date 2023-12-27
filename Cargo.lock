@@ -287,6 +287,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "day-16"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "aoc_input",
+ "clap",
+ "regex",
+]
+
+[[package]]
 name = "day-2"
 version = "0.1.0"
 dependencies = [
