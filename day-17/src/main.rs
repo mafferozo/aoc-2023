@@ -1,4 +1,4 @@
-use std::{collections::HashMap, env};
+use std::{collections::{HashMap, HashSet}, env};
 
 use anyhow::{Context, Result};
 use aoc_input_lib::get_puzzle_input;
@@ -30,28 +30,24 @@ fn main() -> Result<()> {
 
     let g = Grid::parse_grid(&input);
 
-    let mut stack = vec![(0, 0, Direction::Up, 0, Vec::default())];
-    let mut visited: HashMap<(usize, usize), u32> = HashMap::new();
+    let mut stack = vec![(0, 0, Dirs::new(), 0)];
+    // let mut visited: HashMap<(usize, usize), u32> = HashMap::new();
+    let mut visited: HashSet<(usize, usize)> = HashSet::new();
 
-    while let Some((x, y, from_dir, cost, mut past_dirs)) = stack.pop() {
+    while let Some((x, y, past_dirs, cost)) = stack.pop() {
         // todo: check past_dirs
-        if past_dirs.len() > 2 {
-            let v = &past_dirs.as_slice()[past_dirs.len() - 3..];
+        // let saved_cost = visited.entry((x, y)).or_insert(u32::MAX);
+        // if *saved_cost <= cost {
+        //     continue;
+        // }
+        // *saved_cost = cost;
+        if !visited.insert((x,y)) {
+            continue
         }
-        let saved_cost = visited.entry((x, y)).or_insert(u32::MAX);
-        if *saved_cost <= cost {
-            continue;
-        }
-        *saved_cost = cost;
-
-        for to_dir in from_dir.possible_dirs() {
-            let Some((x, y)) = g.clamp((x, y), to_dir) else {
-                continue;
-            };
+        for to_dir in Dirs::possible_dirs(&g, past_dirs, (x, y)) {
+            let (x,y) = to_dir.get_neighbour_unchecked((x,y));
             let cost = cost + g.data[y][x];
-            let mut pd = past_dirs.clone();
-            pd.push(to_dir);
-            stack.push((x, y, to_dir, cost, pd));
+            stack.push((x, y, past_dirs.append(*to_dir), cost));
         }
     }
     assert!(visited.len() == g.rows * g.cols);
@@ -85,6 +81,20 @@ impl Grid {
         Self { data, cols, rows }
     }
 
+    fn possible_dirs(&self, pos: (usize, usize)) -> impl Iterator<Item = &Direction> {
+        ALL_DIRS.iter().filter(move |d| self.is_in_grid(pos, d))
+    }
+
+    fn is_in_grid(&self, (x, y): (usize, usize), dir: &Direction) -> bool {
+        use Direction::*;
+        match dir {
+            Up => y > 0,
+            Down => y + 1 < self.rows,
+            Left => x > 0,
+            Right => x + 1 < self.cols,
+        }
+    }
+
     fn clamp(&self, (x, y): (usize, usize), dir: Direction) -> Option<(usize, usize)> {
         use Direction::*;
         assert!(x < self.cols);
@@ -107,6 +117,13 @@ enum Direction {
     Right,
 }
 
+const ALL_DIRS: &[Direction; 4] = &[
+    Direction::Up,
+    Direction::Down,
+    Direction::Left,
+    Direction::Right,
+];
+
 impl Direction {
     fn possible_dirs(&self) -> [Self; 3] {
         use Direction::*;
@@ -117,13 +134,30 @@ impl Direction {
             Right => [Up, Down, Right],
         }
     }
+
+    fn opposite_dir(&self) -> Self {
+        use Direction::*;
+        match self {
+            Up => Down,
+            Down => Up,
+            Left => Right,
+            Right => Left,
+        }
+    }
+
+    fn get_neighbour_unchecked(&self, (x, y): (usize, usize)) -> (usize,usize) {
+        use Direction::*;
+        match self {
+            Up => (x, y - 1),
+            Down => (x, y + 1),
+            Left => (x - 1, y),
+            Right => (x + 1, y),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-/// This struct is used for two things;
-/// - Keeping track of the last three directions of a node, if there are any
-/// 
-/// - Computing the up to three edges of a node
+/// Keep track of the last three directions of a path, if there are any
 struct Dirs([Option<Direction>; 3]);
 
 impl Dirs {
@@ -131,6 +165,7 @@ impl Dirs {
         Self([None, None, None])
     }
 
+    // Append a new direction to the log
     fn append(&self, dir: Direction) -> Self {
         let new = Some(dir);
 
@@ -138,32 +173,33 @@ impl Dirs {
         Self([new, self.0[0], self.0[1]])
     }
 
+    // Returns the last direction
     fn last(&self) -> Option<Direction> {
         self.0[0]
     }
 
+    /// Returns true if the past three directions are equal
     fn is_same(&self) -> bool {
         match (self.0[0], self.0[1], self.0[2]) {
-            (Some(v1), Some(v2), Some(v3)) => v1==v2 && v1==v3,
-            _ => false
+            (Some(v1), Some(v2), Some(v3)) => v1 == v2 && v1 == v3,
+            _ => false,
         }
     }
 
-    fn possible_dirs(&self) -> Self {
-        use Direction::*;
-        match self.0[0] {
-            Some(v) => todo!(),
-            None => Self([Some(Down), Some(Right), None]),
-        }
+    /// Returns the possible directions of a location in the grid, filtered by:
+    /// - their opposite direction (we can not go back)
+    /// - the forward direction, if we already went forward three times
+    fn possible_dirs(
+        grid: &Grid,
+        past_dirs: Dirs,
+        pos: (usize, usize),
+    ) -> impl Iterator<Item = &Direction> {
+        grid.possible_dirs(pos).filter(move |d| {
+            let last_dir = past_dirs.0[0];
+            last_dir.is_none()
+                || last_dir.is_some_and(|last_dir| {
+                    last_dir != d.opposite_dir() || (**d == last_dir && !past_dirs.is_same())
+                })
+        })
     }
-}
-
-#[derive(Debug, Clone, Copy, Hash)]
-struct Node {
-    past_dirs: Dirs,
-    pos: (usize,usize)
-}
-
-impl Node {
-
 }
