@@ -8,7 +8,7 @@ use anyhow::{Context, Result};
 use aoc_input_lib::get_puzzle_input;
 use clap::Parser;
 
-/// The Floor Will Be Lava
+/// Clumsy Crucible 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
