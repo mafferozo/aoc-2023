@@ -9,5 +9,5 @@ edition = "2021"
 anyhow = "1.0.79"
 aoc_input = "0.2.2"
 clap = { version = "4.4.12", features = ["derive"] }
-phf = "0.11.2"
+phf = { version = "0.11.2", features = ["macros"] }
 regex = "1.10.2"
