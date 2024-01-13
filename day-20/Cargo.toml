@@ -1,0 +1,13 @@
+[package]
+name = "day-20"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.79"
+aoc_input = "0.2.2"
+clap = { version = "4.4.12", features = ["derive"] }
+phf = { version = "0.11.2", features = ["macros"] }
+regex = "1.10.2"
